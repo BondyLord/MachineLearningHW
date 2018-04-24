@@ -71,7 +71,7 @@ public class MainHW3 {
 			System.out.println("----------------------------");
 			Knn autoPriceDataset = new Knn();
 			double crossValidationError = 0;
-			crossValidationError = autoPriceDataset.findBestHyperParametersAndError(autoPriceDataset);
+//			crossValidationError = autoPriceDataset.findBestHyperParametersAndError(autoPriceDataset);
 			System.out.println("Cross validation error of regular knn on auto_price dataset is <error> and");
 			System.out.println("the average elapsed time is <average_elapsed_time_in_nano_seconds>");
 			System.out.println("The total elapsed time is: <total_elapsed_time_in_nano_seconds>");
