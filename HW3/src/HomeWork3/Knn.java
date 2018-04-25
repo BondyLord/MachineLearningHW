@@ -3,10 +3,10 @@ package HomeWork3;
 import java.util.PriorityQueue;
 
 import weka.classifiers.Classifier;
-import weka.core.Capabilities;
-import weka.core.DenseInstance;
-import weka.core.Instance;
-import weka.core.Instances;
+import weka.classifiers.lazy.IBk;
+import weka.core.*;
+import weka.core.neighboursearch.CoverTree;
+import weka.core.neighboursearch.PerformanceStats;
 
 class DistanceCalculator {
     /**
@@ -82,8 +82,9 @@ class DistanceCalculator {
      */
     private double efficientLpDisatnce(Instance one, Instance two) {
         // TODO implement
-
-        return 0.0;
+        EuclideanDistance euclideanDistance = new EuclideanDistance();
+        PerformanceStats performanceStats = new PerformanceStats();
+        return euclideanDistance.distance(one, two,performanceStats.m_MaxP);
     }
 
     /**
@@ -95,6 +96,7 @@ class DistanceCalculator {
      * @return
      */
     private double efficientLInfinityDistance(Instance one, Instance two) {
+        // TODO implement
         return 0.0;
     }
 }
@@ -403,6 +405,7 @@ public class Knn implements Classifier {
      * @param instances
      */
     public void buildClassifier(Instances instances) throws Exception {
+        //TODO implement ?
     }
 
     /**
