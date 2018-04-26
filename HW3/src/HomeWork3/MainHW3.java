@@ -1,16 +1,15 @@
 package HomeWork3;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Random;
-
 import HomeWork3.Knn.e_WeightingScheme;
 import HomeWork3.Knn.lpDistance;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Standardize;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class MainHW3 {
 
@@ -66,6 +65,7 @@ public class MainHW3 {
         long elpasedTime = 0;
         long lastRunElpasedTime = 0;
         long sumTime = 0;
+        Knn.DistanceCheck distanceCheck;
         // on each number of folds and on each kNN algorithm (regular, efficient)
         for (int i = 0; i < numberOfFolds.length; i++) {
             System.out.println();
@@ -73,21 +73,17 @@ public class MainHW3 {
             System.out.println("----------------------------");
             System.out.println("Results for " + numberOfFolds[i] + " folds:");
             System.out.println("----------------------------");
-            for (Knn.DistanceCheck distanceCheck : Knn.DistanceCheck.values()) {
-                /*
-                    output for each number of folds the following:
-                        a.	Done -  The distance check method used (regular, efficient).
-                        b.	TODO - The average error of the cross validation.
-                        c.	Done - The average elapsed time of the prediction of a single fold in the cross validation.
-                        d.	Done - The total elapsed time for the prediction in the cross validation.
-                 */
-                // TODO Remember: before splitting the dataset for the cross validation, you need to shuffle the data.
-                originalDataset.resample(new Random()); // TODO - validate it really shuffles the data
-//                original_error = originalDatasetKnn.findBestHyperParametersAndError(originalDataset);
-//                original_k = originalDatasetKnn.getK();
-//                original_lp_distance_method = originalDatasetKnn.getLpDistanceMethod();
-//                original_weighting_scheme = originalDatasetKnn.getWeightingScheme();
-                System.out.println("Cross validation error of " + distanceCheck.name().toLowerCase() + " knn on auto_price dataset is " + original_error + " and");
+            for (int j = 0; j < 2; j++) {
+                if (j == 0) {
+                    distanceCheck = Knn.DistanceCheck.Regular;
+                    scaledDatasetKnn.setDistanceMethod(scaled_lp_distance_method);
+                    scaled_error = scaledDatasetKnn.crossValidationError(scaledDataset, numberOfFolds[i]);
+                } else {
+                    distanceCheck = Knn.DistanceCheck.Efficient;
+                    scaledDatasetKnn.setDistanceMethod(getEfficientDistance(scaled_lp_distance_method));
+                    scaled_error = scaledDatasetKnn.crossValidationError(scaledDataset, numberOfFolds[i]);
+                }
+                System.out.println("Cross validation error of " + distanceCheck.name().toLowerCase() + " knn on auto_price dataset is " + scaled_error + " and");
                 lastRunElpasedTime = elpasedTime;
                 elpasedTime = System.nanoTime();
                 sumTime += elpasedTime - lastRunElpasedTime;
@@ -97,6 +93,20 @@ public class MainHW3 {
             }
         }
 
+    }
+
+    private static lpDistance getEfficientDistance(lpDistance scaled_lp_distance_method) {
+        switch (scaled_lp_distance_method) {
+            case Infinity:
+                return lpDistance.EfficientInfinity;
+            case One:
+                return lpDistance.EfficientOne;
+            case Two:
+                return lpDistance.EfficientTwo;
+            case Three:
+                return lpDistance.EfficientThree;
+        }
+        return scaled_lp_distance_method;
     }
 
     public static class FeatureScaler {

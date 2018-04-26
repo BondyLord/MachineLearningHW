@@ -1,12 +1,11 @@
 package HomeWork3;
 
-import java.util.PriorityQueue;
-
 import weka.classifiers.Classifier;
-import weka.classifiers.lazy.IBk;
-import weka.core.*;
-import weka.core.neighboursearch.CoverTree;
-import weka.core.neighboursearch.PerformanceStats;
+import weka.core.Capabilities;
+import weka.core.Instance;
+import weka.core.Instances;
+
+import java.util.PriorityQueue;
 
 class DistanceCalculator {
     /**
@@ -29,6 +28,18 @@ class DistanceCalculator {
                 break;
             case Three:
                 distance = lpDisatnce(one, two, 3);
+                break;
+            case EfficientOne:
+                distance = efficientLpDisatnce(one, two, 1);
+                break;
+            case EfficientTwo:
+                distance = efficientLpDisatnce(one, two, 2);
+                break;
+            case EfficientThree:
+                distance = efficientLpDisatnce(one, two, 3);
+                break;
+            case EfficientInfinity:
+                distance = efficientLInfinityDistance(one, two);
                 break;
         }
         return distance;
@@ -80,11 +91,22 @@ class DistanceCalculator {
      * @param two
      * @return
      */
-    private double efficientLpDisatnce(Instance one, Instance two) {
+    private double efficientLpDisatnce(Instance one, Instance two,double powerOf) {
         // TODO implement
-        EuclideanDistance euclideanDistance = new EuclideanDistance();
-        PerformanceStats performanceStats = new PerformanceStats();
-        return euclideanDistance.distance(one, two,performanceStats.m_MaxP);
+        double threshold = Double.MAX_VALUE;
+        double sumOfDistances = 0;
+        double distance = 0;
+        for (int i = 0; i < one.numAttributes() - 1; i++) {
+            double attributeVal = one.value(i);
+            double attributeVal2 = two.value(i);
+            distance = Math.pow(attributeVal - attributeVal2, powerOf);
+            sumOfDistances += Math.abs(distance);
+            if (sumOfDistances > Math.pow(distance, powerOf)) {
+                break;
+            }
+        }
+        double distanceBetweenInstances = Math.pow(sumOfDistances, 1 / powerOf);
+        return distanceBetweenInstances;
     }
 
     /**
@@ -159,7 +181,7 @@ public class Knn implements Classifier {
 
     // lpDistance's variable and functions
     public enum lpDistance {
-        One, Two, Three, Infinity
+        One, Two, Three, Infinity, EfficientOne,EfficientTwo,EfficientThree, EfficientInfinity
     }
 
     ;
@@ -167,6 +189,10 @@ public class Knn implements Classifier {
 
     public lpDistance getLpDistanceMethod() {
         return this.distanceMethod;
+    }
+
+    public void setDistanceMethod(lpDistance distanceMethod) {
+        this.distanceMethod = distanceMethod;
     }
 
     // Other variables and functions
@@ -193,7 +219,9 @@ public class Knn implements Classifier {
 
             // runs over the possible lpDistances
             for (lpDistance disMethod : lpDistance.values()) {
-
+                if (disMethod.name().startsWith("Efficient")) {
+                    break;
+                }
                 this.distanceMethod = disMethod;
 
                 // runs over the possible weightSchemes
@@ -386,12 +414,17 @@ public class Knn implements Classifier {
         //TODO: validate output is correct
         double average = 0.0;
         DistanceCalculator distanceCalculator = new DistanceCalculator();
-        double distance = 0.0, sumDistances = 0.0, sumWightedDistances = 0.0, wi = 0;
+        double distance = 0.0, sumDistances = 0.0, sumWightedDistances = 0.0, wi = 0.0;
         for (Instance neighbor : kNearestNeighbors) {
             distance = distanceCalculator.distance(neighbor, instance, distanceMethod);
-            wi = 1 / Math.pow(distance, 2);
-            sumDistances += wi;
-            sumWightedDistances += wi * neighbor.classValue(); // needs to check neighbor.classValue is f(x^(i))
+            if (distance == 0) {
+                return neighbor.classValue();
+            }
+            wi = 1.0 / Math.pow(distance, 2);
+            if (wi > 0) {
+                sumDistances += wi;
+                sumWightedDistances += wi * neighbor.classValue();
+            }
         }
         average = sumWightedDistances / sumDistances;
         return average;
